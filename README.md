@@ -97,6 +97,4 @@ Your reputation. Your proof. Fully sovereign.
 
 
 
----
 
-## 🏗️ System Architecture
