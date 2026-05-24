@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HERizon Sovereign — Full App</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   GLOBAL TOKENS
+═══════════════════════════════════════════ */
+:root{
+  --bg:#0E0818;--plum:#1E1028;--purple:#352254;
+  --gold:#E7C766;--gold2:#A8883A;--gold-pale:#F5E4A8;
+  --teal:#3EC9B4;--rose:#E85D7A;--violet:#A78BFA;--azure:#60A5FA;
+  --cream:#F5EFE0;--muted:rgba(245,239,224,.5);
+  --glass:rgba(255,255,255,.04);--gb:rgba(231,199,102,.2);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--cream);min-height:100vh;overflow-x:hidden}
+
+/* ═══════════════════════════════════════════
+   AMBIENT BG + GRID
+═══════════════════════════════════════════ */
+.amb{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:drift linear infinite}
+.o1{width:650px;height:650px;background:radial-gradient(circle,#6B3FA0,transparent 70%);top:-180px;left:-120px;animation-duration:22s}
+.o2{width:500px;height:500px;background:radial-gradient(circle,#352254,transparent 70%);top:35%;right:-80px;animation-duration:17s;animation-delay:-8s}
+.o3{width:380px;height:380px;background:radial-gradient(circle,#8B4F3A,transparent 70%);bottom:8%;left:22%;animation-duration:26s;animation-delay:-4s;opacity:.25}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(35px,-28px) scale(1.05)}66%{transform:translate(-18px,42px) scale(.97)}100%{transform:translate(0,0) scale(1)}}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(231,199,102,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(231,199,102,.03) 1px,transparent 1px);background-size:52px 52px}
+
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+.shell{position:relative;z-index:1;display:flex;min-height:100vh}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.sidebar{width:248px;flex-shrink:0;border-right:1px solid rgba(231,199,102,.12);background:rgba(14,8,24,.85);backdrop-filter:blur(24px);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:transform .3s}
+.sb-logo{padding:26px 22px 18px;border-bottom:1px solid rgba(231,199,102,.1)}
+.sb-logo-text{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;letter-spacing:.1em;color:var(--gold)}
+.sb-logo-text span{color:var(--cream);font-style:italic}
+.sb-tagline{font-size:9px;letter-spacing:.18em;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace}
+.sb-user{padding:16px 22px;border-bottom:1px solid rgba(231,199,102,.1);display:flex;align-items:center;gap:11px}
+.sb-avatar{width:36px;height:36px;border-radius:50%;border:1px solid rgba(231,199,102,.4);background:linear-gradient(135deg,#6B3FA0,#352254);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);flex-shrink:0}
+.sb-name{font-size:13px;font-weight:500;line-height:1.2;color:var(--cream)}
+.sb-role{font-size:10px;color:var(--muted)}
+.sb-nav{padding:12px 0;flex:1;overflow-y:auto}
+.nav-sec{padding:8px 16px 5px;font-size:9px;letter-spacing:.2em;color:rgba(245,239,224,.2);text-transform:uppercase;font-family:'DM Mono',monospace;margin-top:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;transition:all .22s;font-size:12px;color:var(--muted);position:relative;user-select:none}
+.nav-item:hover{color:var(--cream);background:rgba(231,199,102,.05)}
+.nav-item.active{color:var(--gold);background:rgba(231,199,102,.08)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:2px;bottom:2px;width:2px;background:var(--gold);border-radius:0 2px 2px 0}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-foot{padding:14px 18px;border-top:1px solid rgba(231,199,102,.1)}
+.wallet-chip{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold2);border:1px solid rgba(168,136,58,.3);padding:6px 10px;letter-spacing:.06em;display:flex;align-items:center;gap:6px;border-radius:2px}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:wdpulse 2s ease infinite;flex-shrink:0}
+@keyframes wdpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT AREA
+═══════════════════════════════════════════ */
+.main-wrap{margin-left:248px;flex:1;min-height:100vh;overflow-x:hidden}
+.page{display:none;padding:36px 40px 72px;animation:pageIn .4s ease both}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════ */
+.page-head{margin-bottom:36px}
+.ph-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ph-label::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.6}
+.ph-title{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;line-height:1.1}
+.ph-title em{font-style:italic;color:var(--gold)}
+.ph-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6;max-width:580px}
+
+.panel{border:1px solid var(--gb);background:var(--glass);backdrop-filter:blur(22px);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.45;pointer-events:none}
+.panel-head{padding:20px 24px 16px;border-bottom:1px solid rgba(231,199,102,.1);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400}
+.panel-title em{font-style:italic;color:var(--gold)}
+.panel-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--gold2);border:1px solid rgba(168,136,58,.3);padding:3px 9px}
+.panel-body{padding:24px}
+
+.btn-gold{padding:12px 24px;background:linear-gradient(135deg,var(--gold),#C9A030);color:var(--bg);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.1em;border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .3s;display:inline-flex;align-items:center;gap:8px}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(231,199,102,.28)}
+.btn-ghost{padding:11px 22px;border:1px solid rgba(231,199,102,.35);background:transparent;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .3s;letter-spacing:.08em;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost:hover{background:rgba(231,199,102,.08);border-color:rgba(231,199,102,.6)}
+
+/* ═══════════════════════════════════════════
+   PAGE 1 — DASHBOARD
+═══════════════════════════════════════════ */
+.top-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px}
+.greeting{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;line-height:1.1}
+.greeting em{font-style:italic;color:var(--gold)}
+.greeting-sub{font-size:13px;color:var(--muted);margin-top:8px}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{border:1px solid var(--gb);background:var(--glass);backdrop-filter:blur(18px);padding:20px 18px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(231,199,102,.4)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4}
+.stat-ghost{font-family:'Cormorant Garamond',serif;font-size:64px;font-weight:300;position:absolute;right:8px;top:4px;color:rgba(231,199,102,.07);line-height:1;pointer-events:none}
+.stat-lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;line-height:1;color:var(--gold)}
+.stat-val.sm{font-size:22px}
+.stat-hint{font-size:11px;color:var(--muted);margin-top:5px}
+.stat-trend{font-size:11px;color:var(--teal);margin-top:3px}
+
+/* Impact Garden */
+.garden-wrap{border:1px solid var(--gb);background:var(--glass);backdrop-filter:blur(22px);position:relative;overflow:hidden;margin-bottom:28px}
+.garden-wrap::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+.garden-head{padding:20px 26px 14px;border-bottom:1px solid rgba(231,199,102,.1);display:flex;justify-content:space-between;align-items:center}
+.garden-canvas{padding:28px 30px 20px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:24px;min-height:180px}
+.bloom{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .3s}
+.bloom:hover{transform:scale(1.1) translateY(-6px)}
+.petal-wrap{position:relative}
+.petal{position:absolute;border-radius:50% 50% 40% 40%;transform-origin:50% 100%;opacity:.85;animation:bloomIn .8s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes bloomIn{from{transform:rotate(var(--r)) scaleY(0)}to{transform:rotate(var(--r))}}
+.b-center{position:absolute;border-radius:50%;z-index:2;transform:translate(-50%,-50%)}
+.b-stem{width:2px;background:linear-gradient(to bottom,rgba(120,70,180,.6),transparent);border-radius:1px;margin-top:3px}
+.b-label{font-size:9px;color:var(--muted);text-align:center;margin-top:5px;font-family:'DM Mono',monospace;line-height:1.3;max-width:70px;opacity:0;transform:translateY(4px);transition:all .3s}
+.bloom:hover .b-label{opacity:1;transform:translateY(0)}
+
+/* Timeline */
+.db-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.tl-item{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid rgba(231,199,102,.06)}
+.tl-item:last-child{border-bottom:none}
+.tl-col{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;border:1px solid;flex-shrink:0}
+.tl-line{flex:1;width:1px;background:rgba(231,199,102,.1);margin-top:3px}
+.tl-body{flex:1}
+.tl-cat{font-size:12px;font-weight:500;margin-bottom:2px}
+.tl-desc{font-size:11px;color:var(--muted);line-height:1.45}
+.tl-tags{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.tl-tag{font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border:1px solid rgba(231,199,102,.18);color:var(--gold2)}
+.tl-tag.nfc{color:var(--teal);border-color:rgba(62,201,180,.35)}
+
+/* Donut */
+.donut-row{display:flex;align-items:center;gap:20px;padding:18px 22px}
+.donut-legend{flex:1}
+.dl-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px;border-bottom:1px solid rgba(231,199,102,.06)}
+.dl-row:last-child{border-bottom:none}
+.dl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dl-name{flex:1;color:var(--muted)}
+.dl-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--cream)}
+
+/* SBT mini grid */
+.sbt-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px}
+.sbt-mini{border:1px solid rgba(231,199,102,.15);background:rgba(255,255,255,.02);padding:12px;cursor:pointer;transition:all .25s;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
+.sbt-mini:hover{border-color:rgba(231,199,102,.4);transform:translateY(-3px);background:rgba(231,199,102,.04)}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.sbt-mini-id{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px}
+.sbt-mini-cat{font-size:11px;font-weight:500;margin-bottom:3px;line-height:1.2}
+.sbt-mini-score{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold)}
+.sbt-nfc-chip{font-size:9px;letter-spacing:.1em;color:var(--teal);margin-top:3px}
+
+/* ═══════════════════════════════════════════
+   PAGE 2 — ALL TOKENS
+═══════════════════════════════════════════ */
+.tokens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.token-card{border:1px solid rgba(231,199,102,.22);background:linear-gradient(135deg,rgba(53,34,84,.5),rgba(14,8,24,.8));padding:24px;position:relative;overflow:hidden;cursor:pointer;transition:all .3s;animation:popIn .5s ease both}
+.token-card:hover{transform:translateY(-6px);border-color:rgba(231,199,102,.5);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.token-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;opacity:.6}
+.tc-id{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:.1em}
+.tc-cat{font-size:13px;font-weight:500;margin-bottom:4px}
+.tc-sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.tc-score-row{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.tc-score{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);line-height:1}
+.tc-score-lbl{font-size:11px;color:var(--muted)}
+.tc-money{font-size:12px;color:var(--teal);margin-bottom:12px}
+.tc-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(231,199,102,.1);padding-top:12px;margin-top:auto}
+.tc-voucher{font-size:10px;color:var(--muted)}
+.tc-chain{font-size:9px;font-family:'DM Mono',monospace;color:var(--gold2);border:1px solid rgba(168,136,58,.25);padding:3px 7px}
+.nfc-flag{font-size:9px;letter-spacing:.1em;color:var(--teal);border:1px solid rgba(62,201,180,.3);padding:2px 7px;display:inline-block;margin-top:6px}
+
+/* ═══════════════════════════════════════════
+   PAGE 3 — IMPACT GARDEN (fullscreen)
+═══════════════════════════════════════════ */
+.full-garden{display:flex;flex-wrap:wrap;gap:32px;padding:8px 0 40px;align-items:flex-end;justify-content:center}
+
+/* ═══════════════════════════════════════════
+   PAGE 4 — TAP TO VOUCH
+═══════════════════════════════════════════ */
+.vouch-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.cat-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.cat-chip{padding:7px 14px;border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:12px;cursor:pointer;transition:all .22s}
+.cat-chip:hover{border-color:rgba(231,199,102,.4);color:var(--cream)}
+.cat-chip.active{color:#fff}
+.tap-zone{display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+.tap-rings{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.t-ring{position:absolute;border-radius:50%;border:1px solid}
+.t-r1{inset:0;border-color:rgba(231,199,102,.15)}
+.t-r2{inset:20px;border-color:rgba(231,199,102,.25);animation:spin 8s linear infinite}
+.t-r3{inset:40px;border-color:rgba(231,199,102,.38);animation:spin 5s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tap-circle{width:72px;height:72px;border-radius:50%;border:1px solid rgba(231,199,102,.5);background:rgba(53,34,84,.7);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;z-index:2}
+.tap-circle:hover{background:rgba(53,34,84,.9);border-color:var(--gold);transform:scale(1.06)}
+.tap-circle.scanning{animation:tapPulse 1s ease infinite;border-color:var(--gold)}
+.tap-circle.done{border-color:var(--teal);background:rgba(62,201,180,.12)}
+@keyframes tapPulse{0%,100%{box-shadow:0 0 0 0 rgba(231,199,102,.3)}50%{box-shadow:0 0 0 16px rgba(231,199,102,0)}}
+.tap-sym{font-size:24px;color:var(--gold);line-height:1}
+.tap-lbl{font-size:8px;letter-spacing:.15em;color:var(--gold);margin-top:3px}
+.tap-hint{font-size:12px;color:var(--muted);text-align:center;max-width:220px;line-height:1.6}
+.prog-track{width:100%;height:3px;background:rgba(255,255,255,.06);margin:16px 0 0;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-pale));width:0;transition:width .08s linear}
+.vouch-result{border:1px solid rgba(231,199,102,.22);background:rgba(231,199,102,.04);padding:18px;margin-top:16px}
+.vr-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:10px}
+.vr-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid rgba(231,199,102,.07)}
+.vr-row:last-child{border-bottom:none}
+.vr-k{color:var(--muted)}.vr-v{font-family:'DM Mono',monospace;font-size:10px;color:var(--cream)}
+
+/* ═══════════════════════════════════════════
+   PAGE 5 — ANALYZE TEXT
+═══════════════════════════════════════════ */
+.analyze-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.example-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.ex-chip{font-size:11px;padding:5px 13px;border:1px solid rgba(231,199,102,.2);background:rgba(231,199,102,.04);color:var(--muted);cursor:pointer;transition:all .22s}
+.ex-chip:hover{border-color:rgba(231,199,102,.5);color:var(--gold)}
+textarea{width:100%;height:150px;background:rgba(255,255,255,.03);border:1px solid rgba(231,199,102,.2);color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.7;padding:14px 16px;resize:none;outline:none;transition:border-color .3s}
+textarea:focus{border-color:rgba(231,199,102,.5)}
+textarea::placeholder{color:rgba(245,239,224,.2)}
+.analyze-meta{display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px;font-size:11px;color:var(--muted)}
+.dur-sel{background:rgba(255,255,255,.04);border:1px solid rgba(231,199,102,.2);color:var(--cream);font-size:11px;padding:4px 9px;font-family:'DM Sans',sans-serif;outline:none}
+.dur-sel option{background:var(--plum)}
+/* result */
+.result-empty-state{padding:50px 30px;text-align:center}
+.res-icon{font-family:'Cormorant Garamond',serif;font-size:44px;color:rgba(231,199,102,.12);margin-bottom:12px}
+.res-empty-text{font-size:12px;color:var(--muted);line-height:1.6}
+.cat-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border:1px solid;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:12px}
+.res-scores{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(231,199,102,.1)}
+.rs-cell{padding:16px 18px;border-right:1px solid rgba(231,199,102,.08)}
+.rs-cell:last-child{border-right:none}
+.rs-lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.rs-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--gold);line-height:1}
+.rs-val.teal{color:var(--teal)}
+.eq-track{height:4px;background:rgba(255,255,255,.06);overflow:hidden;margin:4px 0}
+.eq-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-pale));width:0;transition:width 1.2s cubic-bezier(.25,.46,.45,.94);position:relative}
+.phrases-section,.flags-section{padding:14px 20px;border-bottom:1px solid rgba(231,199,102,.08)}
+.phrases-lbl,.flags-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.phrase-tag{display:inline-block;font-size:11px;font-family:'DM Mono',monospace;padding:3px 10px;background:rgba(231,199,102,.06);border:1px solid rgba(231,199,102,.2);color:var(--gold-pale);margin:3px}
+.flag-tag{display:inline-block;font-size:10px;padding:3px 10px;margin:3px;font-weight:500}
+.flag-sbt{background:rgba(231,199,102,.12);color:var(--gold);border:1px solid rgba(231,199,102,.35)}
+.flag-impact{background:rgba(232,93,122,.1);color:var(--rose);border:1px solid rgba(232,93,122,.3)}
+.flag-pantry{background:rgba(167,139,250,.1);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
+.flag-nfc{background:rgba(62,201,180,.1);color:var(--teal);border:1px solid rgba(62,201,180,.3)}
+.mint-row{padding:18px 20px}
+.mint-btn{width:100%;padding:13px;border:1px solid rgba(231,199,102,.4);background:transparent;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%)}
+.mint-btn:hover{background:rgba(231,199,102,.09);border-color:var(--gold)}
+.mint-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ═══════════════════════════════════════════
+   PAGE 6 — ADVOCACY REPORT
+═══════════════════════════════════════════ */
+.adv-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+.adv-stats{display:flex;flex-direction:column;gap:16px}
+.adv-stat{border:1px solid var(--gb);background:var(--glass);padding:18px 20px;backdrop-filter:blur(16px)}
+.adv-stat-lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.adv-stat-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--gold);line-height:1}
+.adv-stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.gen-adv-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),#C9A030);color:var(--bg);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.12em;border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}
+.gen-adv-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(231,199,102,.25)}
+.gen-adv-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.adv-report-panel{min-height:500px}
+.adv-empty{padding:60px 30px;text-align:center}
+.adv-steps{padding:20px;display:flex;flex-direction:column;gap:8px}
+.adv-step{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid rgba(231,199,102,.1);background:rgba(255,255,255,.02);animation:pageIn .3s ease both}
+.step-ico{width:26px;height:26px;border-radius:50%;border:1px solid rgba(231,199,102,.3);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:rgba(231,199,102,.4)}
+.step-ico.active{border-color:var(--gold);color:var(--gold);animation:stepPulse 1s ease infinite}
+.step-ico.done{border-color:var(--teal);color:var(--teal)}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(231,199,102,.3)}50%{box-shadow:0 0 0 5px rgba(231,199,102,0)}}
+.step-txt{font-size:12px}
+.step-sub{font-size:11px;color:var(--muted)}
+.adv-report-out{display:none}
+.adv-toolbar{padding:14px 20px;border-bottom:1px solid rgba(231,199,102,.1);display:flex;align-items:center;justify-content:space-between}
+.adv-badge{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);border:1px solid rgba(62,201,180,.3);padding:3px 9px;font-family:'DM Mono',monospace}
+.adv-copy{font-size:11px;color:var(--gold);border:1px solid rgba(231,199,102,.3);background:transparent;padding:5px 13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .3s}
+.adv-copy:hover{background:rgba(231,199,102,.08)}
+.adv-report-text{padding:24px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.85;color:var(--cream);white-space:pre-wrap;max-height:540px;overflow-y:auto}
+.adv-report-text::-webkit-scrollbar{width:2px}.adv-report-text::-webkit-scrollbar-thumb{background:rgba(231,199,102,.2)}
+
+/* ═══════════════════════════════════════════
+   PAGE 7 — SOVEREIGN ID
+═══════════════════════════════════════════ */
+.id-card{border:1px solid rgba(231,199,102,.4);background:linear-gradient(135deg,rgba(53,34,84,.7),rgba(14,8,24,.9));padding:0;overflow:hidden;max-width:480px}
+.id-top{padding:28px;background:linear-gradient(135deg,rgba(107,63,160,.3),rgba(53,34,84,.5));border-bottom:1px solid rgba(231,199,102,.15)}
+.id-avatar{width:64px;height:64px;border-radius:50%;border:2px solid rgba(231,199,102,.5);background:linear-gradient(135deg,#6B3FA0,#352254);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);margin-bottom:14px}
+.id-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--cream)}
+.id-title{font-size:13px;color:var(--muted);margin-top:4px}
+.id-body{padding:22px 28px}
+.id-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(231,199,102,.07);font-size:12px}
+.id-row:last-child{border-bottom:none}
+.id-key{color:var(--muted)}.id-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--cream);text-align:right;max-width:240px;word-break:break-all}
+.id-val.gold{color:var(--gold)}
+.id-proof{margin:20px 28px 28px;padding:14px;background:rgba(231,199,102,.04);border-left:2px solid rgba(231,199,102,.4)}
+.id-proof-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:7px}
+.id-proof-text{font-size:12px;color:var(--muted);line-height:1.6}
+.ssi-pillars{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+.ssi-p{border:1px solid var(--gb);background:var(--glass);padding:18px;backdrop-filter:blur(14px);transition:all .3s}
+.ssi-p:hover{border-color:rgba(231,199,102,.4);transform:translateY(-3px)}
+.ssi-title{font-size:12px;font-weight:500;color:var(--gold);margin-bottom:6px}
+.ssi-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ═══════════════════════════════════════════
+   SPINNER + TOAST
+═══════════════════════════════════════════ */
+.spin-ico{width:14px;height:14px;border:2px solid rgba(20,10,30,.35);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0}
+.spinning .spin-ico{display:block}.spinning .btn-txt{display:none}
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;padding:11px 20px;background:rgba(14,8,24,.92);border:1px solid rgba(231,199,102,.4);backdrop-filter:blur(20px);font-size:12px;color:var(--gold);font-family:'DM Mono',monospace;letter-spacing:.07em;opacity:0;transition:opacity .3s;pointer-events:none}
+
+@media(max-width:1100px){.stat-row{grid-template-columns:1fr 1fr}.tokens-grid{grid-template-columns:1fr 1fr}.adv-layout{grid-template-columns:1fr}}
+@media(max-width:800px){.vouch-layout,.analyze-layout,.db-grid,.ssi-pillars{grid-template-columns:1fr}.sidebar{transform:translateX(-100%)}.main-wrap{margin-left:0}.stat-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="amb"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="grid-bg"></div>
+
+<div class="shell">
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text">HERizon <span>Sovereign</span></div>
+    <div class="sb-tagline">Personal Reputation Vault</div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar">KR</div>
+    <div><div class="sb-name">Dr. Kavya Reddy</div><div class="sb-role">Senior Engineer</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Vault</div>
+    <div class="nav-item active" onclick="goTo('dashboard',this)"><div class="nav-dot" style="background:#E7C766"></div>Dashboard</div>
+    <div class="nav-item" onclick="goTo('tokens',this)"><div class="nav-dot" style="background:#3EC9B4"></div>All Tokens</div>
+    <div class="nav-item" onclick="goTo('garden',this)"><div class="nav-dot" style="background:#E85D7A"></div>Impact Garden</div>
+    <div class="nav-sec">Actions</div>
+    <div class="nav-item" onclick="goTo('vouch',this)"><div class="nav-dot" style="background:#A78BFA"></div>Tap to Vouch</div>
+    <div class="nav-item" onclick="goTo('analyze',this)"><div class="nav-dot" style="background:#60A5FA"></div>Analyze Text</div>
+    <div class="nav-item" onclick="goTo('advocacy',this)"><div class="nav-dot" style="background:#E7C766"></div>Advocacy Report</div>
+    <div class="nav-sec">Identity</div>
+    <div class="nav-item" onclick="goTo('identity',this)"><div class="nav-dot" style="background:#F5E4A8"></div>Sovereign ID</div>
+  </nav>
+  <div class="sb-foot">
+    <div class="wallet-chip"><div class="wdot"></div>0x742d…5b2 · Polygon</div>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN WRAP ══════════════ -->
+<div class="main-wrap">
+
+<!-- ─────────── PAGE: DASHBOARD ─────────── -->
+<div class="page active" id="page-dashboard">
+  <div class="top-bar">
+    <div>
+      <div class="greeting">Good morning,<br><em>Dr. Kavya.</em></div>
+      <div class="greeting-sub">Your vault has grown by 2 tokens this week. Your advocacy report is ready.</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="goTo('advocacy',document.querySelector('[onclick*=advocacy]'))">✦ Advocacy Report</button>
+      <button class="btn-gold" onclick="goTo('vouch',document.querySelector('[onclick*=vouch]'))">◆ New Vouch</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-ghost">6</div><div class="stat-lbl">Soulbound Tokens</div><div class="stat-val" id="sc1">0</div><div class="stat-hint">On Polygon blockchain</div><div class="stat-trend">↑ 2 this week</div></div>
+    <div class="stat-card"><div class="stat-ghost">52</div><div class="stat-lbl">Relational Equity</div><div class="stat-val" id="sc2">0</div><div class="stat-hint">Total score / 60</div><div class="stat-trend">↑ 18.3 this month</div></div>
+    <div class="stat-card"><div class="stat-ghost">$</div><div class="stat-lbl">Labor Value</div><div class="stat-val sm" id="sc3">$0</div><div class="stat-hint">Professional rate proxy</div><div class="stat-trend">↑ $490 this quarter</div></div>
+    <div class="stat-card"><div class="stat-ghost">2</div><div class="stat-lbl">NFC Attestations</div><div class="stat-val" id="sc4">0</div><div class="stat-hint">Physical verifications</div><div class="stat-trend">Presence confirmed</div></div>
+  </div>
+
+  <div class="garden-wrap">
+    <div class="garden-head">
+      <div><div class="panel-title" style="font-family:'Cormorant Garamond',serif;font-size:19px">Her Impact <em style="font-style:italic;color:var(--gold)">Garden</em></div><div style="font-size:11px;color:var(--muted);margin-top:3px">Each flower = a verified contribution · size = equity score</div></div>
+      <div class="panel-tag">Liquid Lux · Phase 6</div>
+    </div>
+    <div class="garden-canvas" id="dash-garden"></div>
+  </div>
+
+  <div class="db-grid">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Recent <em>Contributions</em></div><div class="panel-tag">Timeline</div></div>
+      <div style="padding:16px 22px" id="dash-timeline"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Impact <em>Distribution</em></div><div class="panel-tag">Breakdown</div></div>
+        <div class="donut-row">
+          <div style="position:relative;width:110px;height:110px;flex-shrink:0">
+            <svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg)" id="donut-svg"></svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);line-height:1">52.3</div>
+              <div style="font-size:9px;letter-spacing:.12em;color:var(--muted)">Equity</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Token <em>Collection</em></div><div class="panel-tag">6 SBTs</div></div>
+        <div class="sbt-mini-grid" id="sbt-mini-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── PAGE: ALL TOKENS ─────────── -->
+<div class="page" id="page-tokens">
+  <div class="page-head">
+    <div class="ph-label">Blockchain Records</div>
+    <div class="ph-title">All <em>Tokens</em></div>
+    <div class="ph-sub">Every Soulbound Token is permanently recorded on the Polygon blockchain. Non-transferable. Non-deletable. Yours forever.</div>
+  </div>
+  <div class="tokens-grid" id="tokens-grid"></div>
+</div>
+
+<!-- ─────────── PAGE: IMPACT GARDEN ─────────── -->
+<div class="page" id="page-garden">
+  <div class="page-head">
+    <div class="ph-label">Visual Vault</div>
+    <div class="ph-title">Impact <em>Garden</em></div>
+    <div class="ph-sub">Hover over each flower to see the details. Bigger bloom = higher equity score. This is what $1,377 of invisible labor looks like when it finally has a home.</div>
+  </div>
+  <div class="full-garden" id="full-garden"></div>
+</div>
+
+<!-- ─────────── PAGE: TAP TO VOUCH ─────────── -->
+<div class="page" id="page-vouch">
+  <div class="page-head">
+    <div class="ph-label">Phase 4 · NFC Bridge</div>
+    <div class="ph-title">Tap to <em>Vouch</em></div>
+    <div class="ph-sub">One phone tap validates a real-world mentoring session. Works completely offline — syncs to blockchain when connected.</div>
+  </div>
+  <div class="vouch-layout">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Select <em>Impact Type</em></div></div>
+        <div class="panel-body">
+          <div class="cat-chips" id="vouch-chips"></div>
+          <label style="font-size:10px;letter-spacing:.15em;color:var(--muted);display:block;margin-bottom:7px;text-transform:uppercase">Session Duration</label>
+          <select class="dur-sel" id="vouch-dur" style="width:100%;margin-bottom:16px">
+            <option value="5">5 minutes</option>
+            <option value="15" selected>15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="120">2 hours</option>
+          </select>
+          <label style="font-size:10px;letter-spacing:.15em;color:var(--muted);display:block;margin-bottom:7px;text-transform:uppercase">Description (optional)</label>
+          <textarea id="vouch-desc" placeholder="Describe the interaction briefly..." style="height:80px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">NFC <em>Attestation</em></div><div class="panel-tag" id="vouch-count-tag">0 vouched</div></div>
+      <div class="tap-zone">
+        <div class="tap-rings">
+          <div class="t-ring t-r1"></div>
+          <div class="t-ring t-r2"></div>
+          <div class="t-ring t-r3"></div>
+          <div class="tap-circle" id="tap-circle" onclick="doVouch()">
+            <div class="tap-sym" id="tap-sym">◆</div>
+            <div class="tap-lbl" id="tap-lbl">TAP</div>
+          </div>
+        </div>
+        <div class="tap-hint" id="tap-hint">Tap the button to simulate an NFC attestation</div>
+        <div class="prog-track"><div class="prog-fill" id="tap-prog"></div></div>
+      </div>
+      <div id="vouch-result-area" style="padding:0 18px 18px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── PAGE: ANALYZE TEXT ─────────── -->
+<div class="page" id="page-analyze">
+  <div class="page-head">
+    <div class="ph-label">Phase 2 · NLP Engine</div>
+    <div class="ph-title">Analyze <em>Impact</em></div>
+    <div class="ph-sub">Paste any message or describe an interaction. The DeBERTa-v3 NLP model classifies your invisible labor and calculates its Relational Equity Score.</div>
+  </div>
+  <div class="analyze-layout">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Catch the <em>Invisible</em></div><div class="panel-tag">NLP Classifier</div></div>
+        <div class="panel-body">
+          <div class="example-chips">
+            <div class="ex-chip" onclick="loadEx('emotional')">💬 Emotional</div>
+            <div class="ex-chip" onclick="loadEx('info')">📚 Knowledge</div>
+            <div class="ex-chip" onclick="loadEx('mentor')">✦ Mentoring</div>
+            <div class="ex-chip" onclick="loadEx('relational')">⬡ Relational</div>
+          </div>
+          <textarea id="nlp-input" placeholder="Paste a Slack message, email, or describe the interaction..."></textarea>
+          <div class="analyze-meta">
+            <span id="char-cnt">0 chars</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span>Duration:</span>
+              <select class="dur-sel" id="nlp-dur">
+                <option value="5">5 min</option>
+                <option value="15" selected>15 min</option>
+                <option value="30">30 min</option>
+                <option value="60">1 hr</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-gold" id="nlp-btn" onclick="runNLP()" style="width:100%;justify-content:center;clip-path:none">
+            <div class="spin-ico"></div>
+            <span class="btn-txt">◆ &nbsp;Analyze Impact</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" id="nlp-result-panel">
+        <div class="panel-head"><div class="panel-title">Relational <em>Equity Analysis</em></div><div class="panel-tag" id="nlp-result-tag">Awaiting input</div></div>
+        <div id="nlp-empty" class="result-empty-state">
+          <div class="res-icon">◆</div>
+          <div class="res-empty-text">Paste a message and click "Analyze Impact" to see your Relational Equity Score.</div>
+        </div>
+        <div id="nlp-result-body" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── PAGE: ADVOCACY ─────────── -->
+<div class="page" id="page-advocacy">
+  <div class="page-head">
+    <div class="ph-label">Phase 5 · AI Agent</div>
+    <div class="ph-title">Advocacy <em>Report</em></div>
+    <div class="ph-sub">The AI agent scans your entire vault and writes a promotion case backed by blockchain evidence — removing the self-promotion penalty completely.</div>
+  </div>
+  <div class="adv-layout">
+    <div class="adv-stats">
+      <div class="adv-stat"><div class="adv-stat-lbl">Tokens in Vault</div><div class="adv-stat-val">6</div><div class="adv-stat-sub">ERC-5114 · Polygon</div></div>
+      <div class="adv-stat"><div class="adv-stat-lbl">Total Equity</div><div class="adv-stat-val">52.3</div><div class="adv-stat-sub">Out of 60 possible</div></div>
+      <div class="adv-stat"><div class="adv-stat-lbl">Labor Value</div><div class="adv-stat-val" style="font-size:22px">$1,377.50</div><div class="adv-stat-sub">Professional rate proxy</div></div>
+      <div class="adv-stat"><div class="adv-stat-lbl">Target Role</div><div class="adv-stat-val" style="font-size:16px;line-height:1.3">Principal Engineer</div></div>
+      <button class="gen-adv-btn" id="adv-btn" onclick="genAdvocacy()">
+        <div class="spin-ico"></div>
+        <span class="btn-txt">✦ &nbsp;Generate Report</span>
+      </button>
+    </div>
+    <div class="panel adv-report-panel" id="adv-panel">
+      <div class="adv-empty" id="adv-empty">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:44px;color:rgba(231,199,102,.12);margin-bottom:14px">✦</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Click "Generate Report" to watch the AI agent read your vault and write your promotion case.</div>
+      </div>
+      <div class="adv-steps" id="adv-steps" style="display:none"></div>
+      <div class="adv-report-out" id="adv-out">
+        <div class="adv-toolbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="adv-badge">AI Generated · Verified</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:15px">Promotion Advocacy Report</div>
+          </div>
+          <button class="adv-copy" onclick="copyAdv()">Copy Report</button>
+        </div>
+        <div class="adv-report-text" id="adv-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── PAGE: IDENTITY ─────────── -->
+<div class="page" id="page-identity">
+  <div class="page-head">
+    <div class="ph-label">Self-Sovereign Identity</div>
+    <div class="ph-title">Sovereign <em>ID</em></div>
+    <div class="ph-sub">Your identity belongs entirely to you — not to HERizon, not to your employer, not to any platform. This DID travels with you across every job, forever.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+    <div>
+      <div class="id-card">
+        <div class="id-top">
+          <div class="id-avatar">KR</div>
+          <div class="id-name">Dr. Kavya Reddy</div>
+          <div class="id-title">Senior Software Engineer · HERizon Vault Member</div>
+        </div>
+        <div class="id-body">
+          <div class="id-row"><span class="id-key">DID</span><span class="id-val">did:polygon:0x742d35Cc66…4a5b2</span></div>
+          <div class="id-row"><span class="id-key">Wallet</span><span class="id-val">0x742d35Cc6634C0532925a3b8D4C9E3Ff9D4a5b2</span></div>
+          <div class="id-row"><span class="id-key">Network</span><span class="id-val gold">Polygon PoS</span></div>
+          <div class="id-row"><span class="id-key">SBT Count</span><span class="id-val gold">6 tokens</span></div>
+          <div class="id-row"><span class="id-key">Equity Score</span><span class="id-val gold">52.3 / 60</span></div>
+          <div class="id-row"><span class="id-key">Vault Created</span><span class="id-val">Sep 2024</span></div>
+          <div class="id-row"><span class="id-key">Data Owner</span><span class="id-val gold">You. Only you.</span></div>
+        </div>
+        <div class="id-proof">
+          <div class="id-proof-title">Self-Sovereign Architecture</div>
+          <div class="id-proof-text">HERizon Sovereign never stores your credentials. Your DID lives in your wallet — not our database. We verify; we do not own. No company can fire you and delete your record.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="ssi-pillars">
+        <div class="ssi-p"><div class="ssi-title">◆ Portable Identity</div><div class="ssi-desc">Your DID travels with you across every job change. No employer can lock you out.</div></div>
+        <div class="ssi-p"><div class="ssi-title">◆ Encrypted Vault</div><div class="ssi-desc">Contributions are end-to-end encrypted. We process data to mint tokens, then delete the source.</div></div>
+        <div class="ssi-p"><div class="ssi-title">◆ Zero-Knowledge Proofs</div><div class="ssi-desc">Prove credentials to an employer without revealing the underlying data. Privacy by design.</div></div>
+        <div class="ssi-p"><div class="ssi-title">◆ Immutable Record</div><div class="ssi-desc">Tokens live on a public blockchain. No platform shutdown can erase 10 years of your career.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main-wrap -->
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   VAULT DATA
+══════════════════════════════════════ */
+const V=[
+  {id:"SBT#000001",cat:"Mentoring",full:"Mentoring & Sponsorship",sub:"Pantry Mentoring",desc:"Guided Priya through performance review prep — 45-min session on self-advocacy strategies and portfolio framing.",score:9.5,val:150,voucher:"Priya Sharma",nfc:true,date:"Nov 12",color:"#E7C766"},
+  {id:"SBT#000002",cat:"Emotional",full:"Emotional Support",sub:"Crisis De-escalation",desc:"De-escalated team conflict between two senior engineers that was risking project delivery. 2-hour mediation session.",score:8.8,val:340,voucher:"Marcus Chen",nfc:false,date:"Nov 5",color:"#E85D7A"},
+  {id:"SBT#000003",cat:"Knowledge",full:"Informational Support",sub:"Knowledge Transfer",desc:"Created full deployment onboarding guide for 3 new engineers. Saves ~8hrs per new hire.",score:9.2,val:480,voucher:"Aisha Williams",nfc:false,date:"Oct 28",color:"#3EC9B4"},
+  {id:"SBT#000004",cat:"Relational",full:"Relational Labor",sub:"Inclusion Facilitation",desc:"Restructured sprint planning to amplify quieter team members. Ensured 3 voices were heard.",score:7.8,val:95,voucher:"David Park",nfc:false,date:"Oct 15",color:"#A78BFA"},
+  {id:"SBT#000005",cat:"Sponsorship",full:"Mentoring & Sponsorship",sub:"Sponsorship & Advocacy",desc:"Advocated for colleague's VP Engineering promotion before hiring committee. She received the role.",score:9.8,val:200,voucher:"VP People Ops",nfc:true,date:"Sep 30",color:"#E7C766"},
+  {id:"SBT#000006",cat:"Cognitive",full:"Cognitive Labor",sub:"Invisible Planning",desc:"Organized Q4 retrospective, synthesized all action items, followed up with each team member.",score:7.2,val:112.5,voucher:"CTO Sarah",nfc:false,date:"Sep 20",color:"#60A5FA"},
+];
+
+const CATS={
+  "Mentoring":{color:"#E7C766",full:"Mentoring & Sponsorship"},
+  "Emotional Support":{color:"#E85D7A",full:"Emotional Support"},
+  "Knowledge Share":{color:"#3EC9B4",full:"Informational Support"},
+  "Team Support":{color:"#A78BFA",full:"Relational Labor"},
+  "Cognitive":{color:"#60A5FA",full:"Cognitive Labor"},
+};
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function goTo(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  window.scrollTo({top:0});
+  // lazy-build pages
+  if(id==='garden') buildFullGarden();
+  if(id==='tokens') buildTokensGrid();
+}
+
+/* ══════════════════════════════════════
+   COUNTER ANIMATION
+══════════════════════════════════════ */
+function animCnt(id,target,pfx='',dur=1600){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const s=performance.now();
+  const isF=String(target).includes('.');
+  function step(now){
+    const t=Math.min((now-s)/dur,1);
+    const e=1-Math.pow(1-t,3);
+    const v=target*e;
+    el.textContent=pfx+(isF?v.toFixed(1):Math.round(v));
+    if(t<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+setTimeout(()=>{
+  animCnt('sc1',6,'',1400);
+  animCnt('sc2',52.3,'',1700);
+  animCnt('sc3',1377.5,'$',1900);
+  animCnt('sc4',2,'',1300);
+},300);
+
+/* ══════════════════════════════════════
+   BUILD FLOWER
+══════════════════════════════════════ */
+function buildFlower(cfg){
+  const{score,color,label,sz,petals,stem,delay}=cfg;
+  const wrap=document.createElement('div');
+  wrap.className='bloom';
+  wrap.title=label+' · '+score+'/10';
+
+  const pw=document.createElement('div');
+  pw.className='petal-wrap';
+  pw.style.cssText=`width:${sz}px;height:${sz}px;position:relative`;
+
+  for(let i=0;i<petals;i++){
+    const p=document.createElement('div');
+    const ang=360/petals*i;
+    const pw2=Math.round(sz*.36);
+    const ph=Math.round(sz*.52);
+    p.className='petal';
+    p.style.cssText=`--r:${ang}deg;width:${pw2}px;height:${ph}px;left:${sz/2-pw2/2}px;top:${sz/2-ph}px;transform:rotate(${ang}deg);background:${color};animation-delay:${delay+i*25}ms;position:absolute;border-radius:50% 50% 40% 40%`;
+    pw.appendChild(p);
+  }
+  const c=document.createElement('div');
+  c.className='b-center';
+  const cs=Math.round(sz*.3);
+  c.style.cssText=`width:${cs}px;height:${cs}px;background:${color};left:50%;top:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px ${color}55;position:absolute;border-radius:50%`;
+  pw.appendChild(c);
+
+  const stem_el=document.createElement('div');
+  stem_el.className='b-stem';
+  stem_el.style.height=stem+'px';
+
+  const lbl=document.createElement('div');
+  lbl.className='b-label';
+  lbl.innerHTML=label+'<br><span style="color:'+color+'">'+score+'</span>';
+
+  wrap.appendChild(pw);
+  wrap.appendChild(stem_el);
+  wrap.appendChild(lbl);
+  return wrap;
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD GARDEN
+══════════════════════════════════════ */
+const FLOWER_CFGS=[
+  {score:9.8,color:"#E7C766",label:"Sponsorship",sz:80,petals:8,stem:38,delay:0},
+  {score:9.5,color:"#E7C766",label:"Mentoring",sz:74,petals:7,stem:34,delay:100},
+  {score:9.2,color:"#3EC9B4",label:"Knowledge",sz:70,petals:7,stem:32,delay:200},
+  {score:8.8,color:"#E85D7A",label:"Crisis Help",sz:64,petals:6,stem:28,delay:300},
+  {score:7.8,color:"#A78BFA",label:"Inclusion",sz:56,petals:6,stem:24,delay:400},
+  {score:7.2,color:"#60A5FA",label:"Planning",sz:48,petals:5,stem:20,delay:500},
+];
+const dg=document.getElementById('dash-garden');
+FLOWER_CFGS.forEach(c=>dg.appendChild(buildFlower(c)));
+
+/* ══════════════════════════════════════
+   FULL GARDEN
+══════════════════════════════════════ */
+function buildFullGarden(){
+  const fg=document.getElementById('full-garden');
+  if(fg.children.length)return;
+  const bigCfgs=[
+    {score:9.8,color:"#E7C766",label:"Sponsorship\n& Advocacy",sz:120,petals:9,stem:60,delay:0},
+    {score:9.5,color:"#E7C766",label:"Pantry\nMentoring",sz:108,petals:8,stem:54,delay:100},
+    {score:9.2,color:"#3EC9B4",label:"Knowledge\nTransfer",sz:100,petals:8,stem:50,delay:200},
+    {score:8.8,color:"#E85D7A",label:"Crisis\nDe-escalation",sz:90,petals:7,stem:44,delay:300},
+    {score:7.8,color:"#A78BFA",label:"Inclusion\nFacilitation",sz:78,petals:7,stem:38,delay:400},
+    {score:7.2,color:"#60A5FA",label:"Invisible\nPlanning",sz:68,petals:6,stem:32,delay:500},
+  ];
+  bigCfgs.forEach(c=>fg.appendChild(buildFlower(c)));
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD TIMELINE
+══════════════════════════════════════ */
+const dtl=document.getElementById('dash-timeline');
+V.slice(0,5).forEach((t,i)=>{
+  const d=document.createElement('div');
+  d.className='tl-item';
+  d.innerHTML=`
+    <div class="tl-col"><div class="tl-dot" style="background:${t.color}22;border-color:${t.color}"></div>${i<4?'<div class="tl-line"></div>':''}</div>
+    <div class="tl-body">
+      <div class="tl-cat" style="color:${t.color}">${t.full}</div>
+      <div class="tl-desc">${t.desc.slice(0,75)}…</div>
+      <div class="tl-tags">
+        <span class="tl-tag">${t.date}</span>
+        <span class="tl-tag">${t.score}/10</span>
+        <span class="tl-tag">$${t.val}</span>
+        ${t.nfc?'<span class="tl-tag nfc">NFC</span>':''}
+      </div>
+    </div>`;
+  dtl.appendChild(d);
+});
+
+/* ══════════════════════════════════════
+   DONUT CHART
+══════════════════════════════════════ */
+const donutData={Mentoring:{c:"#E7C766",s:19.3},Emotional:{c:"#E85D7A",s:8.8},Knowledge:{c:"#3EC9B4",s:9.2},Relational:{c:"#A78BFA",s:7.8},Cognitive:{c:"#60A5FA",s:7.2}};
+const dtotal=Object.values(donutData).reduce((a,v)=>a+v.s,0);
+const cx=55,cy=55,r=42,sw=9,circ=2*Math.PI*r;
+let off=0;
+const svg=document.getElementById('donut-svg');
+svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="${sw}"/>`;
+Object.entries(donutData).forEach(([n,d])=>{
+  const frac=d.s/dtotal;
+  const dash=frac*circ;
+  const arc=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  arc.setAttribute('cx',cx);arc.setAttribute('cy',cy);arc.setAttribute('r',r);
+  arc.setAttribute('fill','none');arc.setAttribute('stroke',d.c);
+  arc.setAttribute('stroke-width',sw);arc.setAttribute('stroke-linecap','round');
+  arc.setAttribute('stroke-dasharray',`${dash} ${circ-dash}`);
+  arc.setAttribute('stroke-dashoffset',`${-off*circ}`);arc.setAttribute('opacity','.85');
+  svg.appendChild(arc);
+  off+=frac;
+});
+const dl=document.getElementById('donut-legend');
+Object.entries(donutData).forEach(([n,d])=>{
+  const row=document.createElement('div');
+  row.className='dl-row';
+  row.innerHTML=`<div class="dl-dot" style="background:${d.c}"></div><div class="dl-name">${n}</div><div class="dl-val">${d.s}</div>`;
+  dl.appendChild(row);
+});
+
+/* ══════════════════════════════════════
+   SBT MINI GRID
+══════════════════════════════════════ */
+const smg=document.getElementById('sbt-mini-grid');
+V.forEach((t,i)=>{
+  const d=document.createElement('div');
+  d.className='sbt-mini';
+  d.style.animationDelay=(i*50)+'ms';
+  d.onclick=()=>{ goTo('tokens',document.querySelector('[onclick*=tokens]')); };
+  d.innerHTML=`<div class="sbt-mini-id">${t.id}</div><div class="sbt-mini-cat" style="color:${t.color}">${t.cat}</div><div class="sbt-mini-score">${t.score}</div>${t.nfc?'<div class="sbt-nfc-chip">◎ NFC</div>':''}`;
+  smg.appendChild(d);
+});
+
+/* ══════════════════════════════════════
+   ALL TOKENS GRID
+══════════════════════════════════════ */
+function buildTokensGrid(){
+  const tg=document.getElementById('tokens-grid');
+  if(tg.children.length)return;
+  V.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='token-card';
+    d.style.animationDelay=(i*60)+'ms';
+    d.style.setProperty('--card-color',t.color);
+    d.innerHTML=`
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${t.color};opacity:.6"></div>
+      <div class="tc-id">${t.id} · Polygon · ERC-5114</div>
+      <div class="tc-cat" style="color:${t.color}">${t.full}</div>
+      <div class="tc-sub">${t.sub}</div>
+      <div class="tc-desc" style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px">${t.desc}</div>
+      <div class="tc-score-row"><div class="tc-score">${t.score}</div><div class="tc-score-lbl">/ 10 equity</div></div>
+      <div class="tc-money">$${t.val.toFixed(2)} documented value</div>
+      ${t.nfc?'<div class="nfc-flag">◎ NFC-Attested · Physical presence verified</div>':''}
+      <div class="tc-footer">
+        <div class="tc-voucher">Vouched by ${t.voucher}</div>
+        <div class="tc-chain">Polygon ✓</div>
+      </div>`;
+    tg.appendChild(d);
+  });
+}
+
+/* ══════════════════════════════════════
+   TAP TO VOUCH
+══════════════════════════════════════ */
+let vouchCat='Mentoring',vouchColor='#E7C766',tapping=false,vouchCount=0;
+const vc=document.getElementById('vouch-chips');
+Object.entries(CATS).forEach(([name,data])=>{
+  const c=document.createElement('div');
+  c.className='cat-chip'+(name==='Mentoring'?' active':'');
+  if(name==='Mentoring'){c.style.borderColor=data.color+'80';c.style.color=data.color;c.style.background=data.color+'18'}
+  c.textContent=name;
+  c.onclick=function(){
+    document.querySelectorAll('#vouch-chips .cat-chip').forEach(x=>{x.classList.remove('active');x.style.cssText=''});
+    c.classList.add('active');
+    c.style.borderColor=data.color+'80';c.style.color=data.color;c.style.background=data.color+'18';
+    vouchCat=name;vouchColor=data.color;
+  };
+  vc.appendChild(c);
+});
+
+async function doVouch(){
+  if(tapping)return;
+  tapping=true;
+  const tc=document.getElementById('tap-circle');
+  const ts=document.getElementById('tap-sym');
+  const tl=document.getElementById('tap-lbl');
+  const th=document.getElementById('tap-hint');
+  const prog=document.getElementById('tap-prog');
+  tc.classList.add('scanning');
+  tc.style.borderColor=vouchColor+'80';
+  th.textContent='Hold phones together… reading NFC…';
+  let pct=0;
+  const iv=setInterval(()=>{
+    pct+=2.5;prog.style.width=pct+'%';
+    if(pct>=100){
+      clearInterval(iv);
+      tc.classList.remove('scanning');tc.classList.add('done');
+      tc.style.borderColor='#3EC9B4';
+      ts.textContent='✦';ts.style.color='#3EC9B4';
+      tl.textContent='DONE';tl.style.color='#3EC9B4';
+      th.textContent='Attestation written · Queued for blockchain mint';
+      vouchCount++;
+      document.getElementById('vouch-count-tag').textContent=vouchCount+' vouched';
+      const nonce=(Date.now().toString(36)+Math.random().toString(36).slice(2)).toUpperCase().slice(0,8);
+      document.getElementById('vouch-result-area').innerHTML=`
+        <div class="vouch-result">
+          <div class="vr-title">NFC Attestation · #${String(vouchCount).padStart(3,'0')}</div>
+          <div class="vr-row"><span class="vr-k">Category</span><span class="vr-v" style="color:${vouchColor}">${vouchCat}</span></div>
+          <div class="vr-row"><span class="vr-k">Duration</span><span class="vr-v">${document.getElementById('vouch-dur').value} min</span></div>
+          <div class="vr-row"><span class="vr-k">Time</span><span class="vr-v">${new Date().toLocaleTimeString()}</span></div>
+          <div class="vr-row"><span class="vr-k">Nonce</span><span class="vr-v">${nonce}</span></div>
+          <div class="vr-row"><span class="vr-k">Status</span><span class="vr-v" style="color:#E7C766">Queued → SBT Mint</span></div>
+        </div>`;
+      setTimeout(()=>{
+        tc.classList.remove('done');tc.style.borderColor='rgba(231,199,102,.5)';
+        ts.textContent='◆';ts.style.color='var(--gold)';
+        tl.textContent='TAP';tl.style.color='var(--gold)';
+        th.textContent='Tap again for another session';
+        prog.style.width='0%';tapping=false;
+      },3000);
+    }
+  },32);
+}
+
+/* ══════════════════════════════════════
+   NLP CLASSIFIER
+══════════════════════════════════════ */
+const NLP_KW={
+  "Mentoring & Sponsorship":{c:"#E7C766",kws:["mentor","coach","career","recommend","vouch","promote","in my experience","for your career","put your name","senior"],score:9.5,rate:200},
+  "Emotional Support":{c:"#E85D7A",kws:["here for you","check in","how are you","stressed","overwhelmed","that sounds hard","you're not alone","proud of you","difficult","hard time"],score:7.5,rate:85},
+  "Informational Support":{c:"#3EC9B4",kws:["here's how","let me show","guide","walkthrough","documentation","step by step","resource","template","best practice","tip"],score:8.2,rate:120},
+  "Relational Labor":{c:"#A78BFA",kws:["introduce","connect","celebrate","kudos","shoutout","include","welcome","let's make sure","sidelined","recognition"],score:6.8,rate:95},
+  "Cognitive Labor":{c:"#60A5FA",kws:["i'll follow up","i'll organize","reminder","agenda","action items","i handled","i took care","i scheduled","i coordinated"],score:7.0,rate:75},
+};
+const EX_MSGS={
+  emotional:"Hey, I noticed you seemed really stressed during today's standup and wanted to check in privately — are you doing okay? I know this sprint has been overwhelming. I've been in that exact place and it's genuinely hard. Please know you can talk to me anytime.",
+  info:"I put together a complete step-by-step walkthrough of our deployment process since I know it's confusing for new joiners. Here's the guide with the three most common errors and how to fix them — feel free to share it with anyone who needs it.",
+  mentor:"I wanted to talk about your career trajectory if you're open to it. Based on what I've seen you're genuinely ready for a senior role. In my experience the key is visibility with the right stakeholders before review season. I'd be happy to vouch for you and put your name forward.",
+  relational:"Just a reminder — please make sure we include Amara in the Friday sync. She's been feeling sidelined since the restructure. Also, we should celebrate Priya's work on the API migration — it was exceptional and she didn't get the recognition she deserved.",
+};
+document.getElementById('nlp-input').addEventListener('input',function(){
+  document.getElementById('char-cnt').textContent=this.value.length+' chars';
+});
+function loadEx(t){document.getElementById('nlp-input').value=EX_MSGS[t];document.getElementById('char-cnt').textContent=EX_MSGS[t].length+' chars';}
+
+async function runNLP(){
+  const txt=document.getElementById('nlp-input').value.trim();
+  if(!txt||txt.length<8)return;
+  const btn=document.getElementById('nlp-btn');
+  btn.classList.add('spinning');btn.disabled=true;
+  await new Promise(r=>setTimeout(r,900+Math.random()*400));
+  btn.classList.remove('spinning');btn.disabled=false;
+
+  const lower=txt.toLowerCase();
+  let best=null,bestCount=0;
+  for(const[cat,data]of Object.entries(NLP_KW)){
+    const cnt=data.kws.filter(k=>lower.includes(k)).length;
+    if(cnt>bestCount){bestCount=cnt;best=cat;}
+  }
+  if(!best)best="Relational Labor";
+  const data=NLP_KW[best];
+  const wc=txt.split(/\s+/).length;
+  const conf=Math.min(0.55+bestCount*.07,0.94);
+  const eq=Math.min(data.score+(wc/100)+(conf-.5),10).toFixed(1);
+  const mins=parseInt(document.getElementById('nlp-dur').value);
+  const money=((data.rate/60)*mins*(eq/10)*(1+(eq-5)*.1)).toFixed(2);
+  const sbt=parseFloat(eq)>=7&&conf>=.65;
+  const phrases=data.kws.filter(k=>lower.includes(k)).slice(0,3).map(k=>{
+    const idx=lower.indexOf(k);
+    return '…'+txt.slice(Math.max(0,idx-12),idx+k.length+12).trim()+'…';
+  });
+  const flags=[];
+  if(parseFloat(eq)>=9)flags.push({t:'HIGH IMPACT',cls:'flag-impact'});
+  if(best==="Mentoring & Sponsorship")flags.push({t:'PANTRY MENTORING',cls:'flag-pantry'});
+  if(sbt)flags.push({t:'SBT READY',cls:'flag-sbt'});
+
+  document.getElementById('nlp-result-tag').textContent=best;
+  document.getElementById('nlp-empty').style.display='none';
+  const rb=document.getElementById('nlp-result-body');
+  rb.style.display='block';
+  rb.innerHTML=`
+    <div style="padding:18px 22px;border-bottom:1px solid rgba(231,199,102,.1)">
+      <div class="cat-badge" style="border-color:${data.c}50;background:${data.c}12;color:${data.c}"><span style="width:7px;height:7px;border-radius:50%;background:${data.c};display:inline-block"></span>${best}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300">${best.split(' ').slice(-1)[0]} Detected</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${sbt?'✓ Eligible for Soulbound Token minting':'Build more interactions to reach SBT threshold'}</div>
+    </div>
+    <div class="res-scores">
+      <div class="rs-cell"><div class="rs-lbl">Equity Score</div><div class="rs-val">${eq}</div><div style="font-size:10px;color:var(--muted)">/10</div></div>
+      <div class="rs-cell"><div class="rs-lbl">Confidence</div><div class="rs-val teal">${Math.round(conf*100)}%</div></div>
+      <div class="rs-cell"><div class="rs-lbl">$ Value</div><div class="rs-val" style="font-size:22px">$${money}</div></div>
+    </div>
+    <div style="padding:16px 22px;border-bottom:1px solid rgba(231,199,102,.08)">
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Equity Score</div>
+      <div class="eq-track"><div class="eq-fill" id="eq-fill-bar"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(245,239,224,.2);font-family:'DM Mono',monospace;margin-top:5px"><span>0</span><span>5</span><span>10</span></div>
+    </div>
+    ${phrases.length?`<div class="phrases-section"><div class="phrases-lbl">Evidence Phrases</div>${phrases.map(p=>`<span class="phrase-tag">${p}</span>`).join('')}</div>`:''}
+    ${flags.length?`<div class="flags-section"><div class="flags-lbl">Classification Flags</div>${flags.map(f=>`<span class="flag-tag ${f.cls}">${f.t}</span>`).join('')}</div>`:''}
+    <div class="mint-row">
+      <button class="mint-btn" ${!sbt?'disabled':''} onclick="showToast('◆ Minting SBT… Token will appear in your vault')">
+        ${sbt?'◆ &nbsp;Mint as Soulbound Token':'◇ &nbsp;Equity score below SBT threshold (7.0)'}
+      </button>
+    </div>`;
+  setTimeout(()=>{
+    const fill=document.getElementById('eq-fill-bar');
+    if(fill)fill.style.width=(parseFloat(eq)*10)+'%';
+  },50);
+}
+
+/* ══════════════════════════════════════
+   ADVOCACY REPORT
+══════════════════════════════════════ */
+const ADV_STEPS=[
+  {ico:"⬡",txt:"Connecting to blockchain",sub:"Reading SBT tokens from Polygon…"},
+  {ico:"◎",txt:"Loading vault entries",sub:"6 tokens · $1,377 total value…"},
+  {ico:"◆",txt:"Analyzing impact patterns",sub:"NLP classification · equity scoring…"},
+  {ico:"✦",txt:"Calculating economic proxies",sub:"Market-rate conversion · ROI framing…"},
+  {ico:"⬟",txt:"Removing self-promotion bias",sub:"Reframing to third-person evidence…"},
+  {ico:"◈",txt:"Writing advocacy report",sub:"Structured output · GPT-4o style…"},
+];
+
+async function genAdvocacy(){
+  const btn=document.getElementById('adv-btn');
+  btn.classList.add('spinning');btn.disabled=true;
+  document.getElementById('adv-empty').style.display='none';
+  document.getElementById('adv-out').style.display='none';
+  const stepsDiv=document.getElementById('adv-steps');
+  stepsDiv.style.display='flex';stepsDiv.innerHTML='';
+
+  for(let i=0;i<ADV_STEPS.length;i++){
+    const s=ADV_STEPS[i];
+    await new Promise(r=>setTimeout(r,650));
+    const div=document.createElement('div');
+    div.className='adv-step';
+    div.style.animationDelay='0s';
+    div.innerHTML=`<div class="step-ico active">${s.ico}</div><div><div class="step-txt">${s.txt}</div><div class="step-sub">${s.sub}</div></div>`;
+    stepsDiv.appendChild(div);
+    if(i>0){const prev=stepsDiv.children[i-1];prev.querySelector('.step-ico').className='step-ico done';}
+  }
+  await new Promise(r=>setTimeout(r,800));
+  [...stepsDiv.children].forEach(c=>c.querySelector('.step-ico').className='step-ico done');
+  await new Promise(r=>setTimeout(r,400));
+
+  stepsDiv.style.display='none';
+  const out=document.getElementById('adv-out');
+  out.style.display='block';
+  out.style.animation='pageIn .4s ease';
+  const textEl=document.getElementById('adv-text');
+  textEl.textContent='';
+  const report=buildAdvReport();
+  for(let i=0;i<report.length;i++){
+    textEl.textContent+=report[i];
+    textEl.scrollTop=textEl.scrollHeight;
+    if(i%4===0)await new Promise(r=>setTimeout(r,3));
+  }
+  btn.classList.remove('spinning');btn.disabled=false;
+}
+
+function buildAdvReport(){
+  const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  return `╔═══════════════════════════════════════════════════════╗
+║      PROMOTION ADVOCACY REPORT — CONFIDENTIAL        ║
+║      HERizon Sovereign · Blockchain-Verified          ║
+╚═══════════════════════════════════════════════════════╝
+
+CANDIDATE:    Dr. Kavya Reddy
+CURRENT ROLE: Senior Software Engineer
+TARGET ROLE:  Principal Engineer / Engineering Manager
+PERIOD:       Q4 2024 – Q1 2025
+DATE:         ${today}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXECUTIVE SUMMARY
+─────────────────
+This report presents blockchain-verified evidence of Dr. Kavya
+Reddy's organizational contributions systematically absent from
+standard performance reviews. All 6 contributions are recorded
+as non-transferable Soulbound Tokens (ERC-5114) on Polygon and
+attested by named peers.
+
+  Verified SBT Tokens:        6 (Polygon blockchain)
+  Total Relational Equity:    52.3 / 60.0
+  Documented Labor Value:     $1,377.50
+  NFC-Attested Interactions:  2 of 6
+
+Every claim below references a specific on-chain token.
+Verify: polygonscan.com/address/0x742d35Cc66…4a5b2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 1: VERIFIED CONTRIBUTIONS
+──────────────────────────────────
+▸ SBT#000001 · Mentoring & Sponsorship
+  Guided Priya through performance review prep — 45-min
+  session on self-advocacy and portfolio framing.
+  Attested by: Priya Sharma | Value: $150.00
+  [NFC-ATTESTED: Physical presence confirmed]
+
+▸ SBT#000002 · Emotional Support (Crisis Level)
+  De-escalated team conflict between two senior engineers
+  that was actively risking project delivery. 2-hour session.
+  Attested by: Marcus Chen | Value: $340.00
+  [PEER-SIGNED: Digital attestation]
+
+▸ SBT#000003 · Informational Support (Highest Value)
+  Created full deployment onboarding guide for 3 engineers.
+  Saves ~8 hours per new hire — compounding organizational value.
+  Attested by: Aisha Williams | Value: $480.00
+  [PEER-SIGNED: Digital attestation]
+
+▸ SBT#000004 · Relational Labor
+  Restructured sprint planning format to amplify 3 quieter
+  team voices. Measurable increase in team participation.
+  Attested by: David Park | Value: $95.00
+  [PEER-SIGNED: Digital attestation]
+
+▸ SBT#000005 · Sponsorship & Advocacy (Highest Impact)
+  Advocated for colleague's VP Engineering promotion before
+  the hiring committee. Colleague received the role.
+  Attested by: VP People Ops | Value: $200.00
+  [NFC-ATTESTED: Physical presence confirmed]
+
+▸ SBT#000006 · Cognitive Labor
+  Organized Q4 retrospective, synthesized all action items,
+  followed up individually with each team member.
+  Attested by: CTO Sarah | Value: $112.50
+  [PEER-SIGNED: Digital attestation]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 2: ECONOMIC IMPACT — $1,377.50 UNDOCUMENTED
+─────────────────────────────────────────────────────
+Mentoring & Sponsorship:   $350.00  (2 interactions)
+Emotional Support:         $340.00  (1 interaction — crisis)
+Informational Support:     $480.00  (1 interaction — highest)
+Relational Labor:           $95.00  (1 interaction)
+Cognitive Labor:           $112.50  (1 interaction)
+                         ─────────────────────────
+TOTAL UNDOCUMENTED VALUE:  $1,377.50
+
+This represents market-rate cost of external professionals
+performing equivalent services — not reflected in any existing
+compensation or performance evaluation framework.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 3: LEADERSHIP EVIDENCE
+───────────────────────────────
+◆ Secured a colleague's VP promotion (SBT#000005)
+  → Evidence of executive-level organizational influence
+
+◆ Prevented project delivery failure via crisis mediation
+  → Evidence of conflict resolution at senior leadership scope
+
+◆ Knowledge transfer system adopted team-wide (SBT#000003)
+  → Evidence of scalable process thinking beyond role scope
+
+◆ 2 NFC-attested informal mentoring interactions
+  → Evidence of leadership that resists documentation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RECOMMENDATION
+──────────────
+The documented evidence demonstrates sustained Principal-level
+organizational leadership. The review committee is encouraged to
+note that this evidence represents a LOWER BOUND — only
+explicitly attested interactions appear here.
+
+Recommend:  Immediate promotion to Principal Engineer
+Rationale:  Scope of impact already exceeds current role level
+Evidence:   Immutable · Peer-attested · Blockchain-verified
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Report generated by HERizon Sovereign Advocacy Agent v1.0
+All evidence sourced from immutable blockchain records`;
+}
+function copyAdv(){
+  navigator.clipboard.writeText(document.getElementById('adv-text').textContent).catch(()=>{});
+  const b=document.querySelector('.adv-copy');const o=b.textContent;
+  b.textContent='✓ Copied!';setTimeout(()=>b.textContent=o,2000);
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2500);
+}
+</script>
+</body>
+</html>
